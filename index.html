@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>心动老虎机</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;
+  background:#0b0714;color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  min-height:100vh;min-height:100dvh;
+  overflow:hidden;
+  user-select:none;-webkit-user-select:none;
+}
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(ellipse 65% 50% at 15% -5%,rgba(139,92,246,.38),transparent 62%),
+    radial-gradient(ellipse 65% 50% at 88% 105%,rgba(255,95,141,.32),transparent 62%),
+    radial-gradient(ellipse 45% 35% at 50% 50%,rgba(255,209,102,.06),transparent 70%);
+}
+
+/* ========== 布局 ========== */
+.game{
+  position:relative;z-index:1;
+  width:100%;max-width:460px;
+  padding:18px 16px;
+  display:flex;flex-direction:column;gap:14px;
+  animation:fadeUp .5s ease both;
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+/* ========== 计分板 ========== */
+.scoreboard{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center}
+.player{
+  position:relative;
+  background:rgba(255,255,255,.045);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:18px;
+  padding:10px 8px 12px;
+  text-align:center;
+  transition:all .35s cubic-bezier(.3,1.2,.5,1);
+  overflow:hidden;
+}
+.player::after{
+  content:'';position:absolute;left:50%;bottom:6px;transform:translateX(-50%);
+  width:5px;height:5px;border-radius:50%;background:#ff5f8d;
+  opacity:0;transition:opacity .3s;
+}
+.player.active{
+  border-color:rgba(255,95,141,.55);
+  background:linear-gradient(160deg,rgba(255,95,141,.22),rgba(139,92,246,.14));
+  box-shadow:0 0 26px rgba(255,95,141,.22),inset 0 1px 0 rgba(255,255,255,.1);
+  transform:translateY(-2px);
+}
+.player.active::after{opacity:1;animation:pulse 1.4s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:translateX(-50%) scale(1)}50%{opacity:.35;transform:translateX(-50%) scale(.6)}}
+.pname{font-size:12px;letter-spacing:.5px;color:rgba(255,255,255,.62);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 4px}
+.pscore{font-size:27px;font-weight:800;line-height:1.2;margin-top:1px;
+  background:linear-gradient(180deg,#fff,#c9b8ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.player.active .pscore{background:linear-gradient(180deg,#fff,#ffb4c9);-webkit-background-clip:text;background-clip:text}
+.pscore.bump{animation:bump .55s cubic-bezier(.3,1.6,.5,1)}
+@keyframes bump{0%{transform:scale(1)}35%{transform:scale(1.4);filter:brightness(1.5)}100%{transform:scale(1)}}
+.vs{font-size:11px;font-weight:800;letter-spacing:1px;color:rgba(255,255,255,.22);padding:0 2px}
+
+/* ========== 老虎机 ========== */
+.machine{
+  position:relative;
+  background:linear-gradient(180deg,#1e1533 0%,#151022 55%,#110c1d 100%);
+  border:1px solid rgba(255,255,255,.09);
+  border-radius:26px;
+  padding:14px 12px 12px;
+  box-shadow:0 24px 60px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.07),0 0 0 1px rgba(255,95,141,.05);
+}
+.lights{display:flex;justify-content:space-between;padding:0 6px 10px}
+.lights i{width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.3;animation:blink 1.6s infinite}
+.lights i:nth-child(odd){color:#ff5f8d}
+.lights i:nth-child(even){color:#ffd166}
+.lights i:nth-child(3n){color:#8b5cf6}
+@keyframes blink{0%,100%{opacity:.18;box-shadow:none}50%{opacity:1;box-shadow:0 0 9px currentColor}}
+
+.reels{display:grid;grid-template-columns:1.35fr 1.15fr 1fr;gap:8px}
+.reel{
+  position:relative;height:132px;overflow:hidden;
+  border-radius:13px;
+  background:linear-gradient(180deg,rgba(0,0,0,.5),rgba(0,0,0,.22));
+  border:1px solid rgba(255,255,255,.06);
+  box-shadow:inset 0 3px 12px rgba(0,0,0,.5);
+}
+.strip{position:relative;z-index:1;will-change:transform}
+.reel-item{
+  height:44px;display:flex;align-items:center;justify-content:center;
+  text-align:center;padding:0 5px;
+  font-size:12px;line-height:1.18;font-weight:600;
+  color:rgba(255,255,255,.62);
+}
+.reel::before{
+  content:'';position:absolute;inset:0;z-index:3;pointer-events:none;
+  background:linear-gradient(180deg,rgba(17,12,29,.95) 0%,rgba(17,12,29,0) 30%,rgba(17,12,29,0) 70%,rgba(17,12,29,.95) 100%);
+}
+.reel::after{
+  content:'';position:absolute;left:5px;right:5px;top:44px;height:44px;z-index:4;pointer-events:none;
+  border-radius:10px;
+  border:1px solid rgba(255,209,102,.5);
+  box-shadow:inset 0 0 16px rgba(255,209,102,.13),0 0 14px rgba(255,209,102,.09);
+}
+.machine-foot{display:flex;justify-content:center;padding-top:11px}
+.turn-tag{
+  font-size:11.5px;font-weight:700;letter-spacing:.6px;
+  padding:5px 14px;border-radius:99px;
+  color:#ffc4d5;
+  background:rgba(255,95,141,.12);
+  border:1px solid rgba(255,95,141,.22);
+}
+
+/* ========== 任务卡 ========== */
+.task-card{
+  min-height:74px;
+  display:flex;align-items:center;justify-content:center;
+  padding:14px 16px;text-align:center;
+  border-radius:18px;
+  background:rgba(255,255,255,.035);
+  border:1px dashed rgba(255,255,255,.13);
+  font-size:15px;line-height:1.55;font-weight:600;
+  color:rgba(255,255,255,.55);
+  transition:all .3s;
+}
+.task-card.active{
+  border-style:solid;
+  border-color:rgba(255,209,102,.42);
+  background:linear-gradient(160deg,rgba(255,209,102,.09),rgba(255,95,141,.05));
+  color:#fff;
+  box-shadow:0 0 34px rgba(255,209,102,.14);
+  animation:pop .42s cubic-bezier(.3,1.5,.5,1);
+}
+.task-card.doing{
+  border-color:rgba(52,211,153,.5);
+  background:linear-gradient(160deg,rgba(52,211,153,.1),rgba(6,182,212,.05));
+  box-shadow:0 0 34px rgba(52,211,153,.16);
+}
+@keyframes pop{0%{transform:scale(.94);opacity:.4}60%{transform:scale(1.02)}100%{transform:scale(1);opacity:1}}
+
+/* ========== 按钮 ========== */
+.controls{display:flex;gap:10px;min-height:56px}
+.btn{
+  flex:1;border:none;border-radius:16px;
+  padding:17px 10px;
+  font-family:inherit;font-size:16px;font-weight:800;letter-spacing:.5px;
+  color:#fff;cursor:pointer;
+  transition:transform .12s ease,filter .2s,box-shadow .2s;
+  position:relative;overflow:hidden;
+}
+.btn::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(255,255,255,.22),transparent 55%);
+  pointer-events:none;
+}
+.btn:active{transform:scale(.955)}
+.btn:disabled{opacity:.45;transform:none}
+.btn.primary{
+  background:linear-gradient(135deg,#ff5f8d,#8b5cf6);
+  box-shadow:0 10px 28px rgba(255,95,141,.34);
+  font-size:17px;letter-spacing:3px;
+}
+.btn.accept{
+  background:linear-gradient(135deg,#34d399,#0ea5e9);
+  box-shadow:0 10px 28px rgba(52,211,153,.28);
+  font-size:15px;
+}
+.btn.decline{
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.13);
+  color:#ff9db5;
+  font-size:14px;
+  box-shadow:none;
+}
+.btn.done{
+  background:linear-gradient(135deg,#ffd166,#ff9f43);
+  color:#3d2600;
+  box-shadow:0 10px 28px rgba(255,209,102,.32);
+  font-size:16px;
+}
+
+/* ========== 隐藏设置入口 ========== */
+.secret-dot{
+  position:fixed;right:10px;bottom:10px;
+  width:26px;height:26px;border-radius:50%;
+  background:#fff;opacity:.055;z-index:60;
+  transition:opacity .35s;
+  cursor:pointer;
+}
+.secret-dot:hover,.secret-dot:active{opacity:.35}
+
+/* ========== 设置面板 ========== */
+.sheet{
+  position:fixed;inset:0;z-index:200;
+  display:none;align-items:flex-end;justify-content:center;
+  background:rgba(5,3,10,.68);
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+}
+.sheet.open{display:flex}
+.sheet-inner{
+  width:100%;max-width:480px;max-height:88vh;overflow-y:auto;
+  background:#150f22;
+  border-radius:26px 26px 0 0;
+  border-top:1px solid rgba(255,255,255,.1);
+  padding:22px 20px calc(22px + env(safe-area-inset-bottom));
+  animation:slideUp .32s cubic-bezier(.3,1,.4,1);
+}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:none}}
+.sheet-inner h3{font-size:17px;margin-bottom:18px;letter-spacing:1px;color:#ffc4d5}
+.field{margin-bottom:15px}
+.field label{display:block;font-size:12px;color:rgba(255,255,255,.5);margin-bottom:7px;letter-spacing:.5px;font-weight:600}
+.field input,.field textarea{
+  width:100%;font-family:inherit;font-size:13.5px;line-height:1.6;
+  padding:11px 13px;border-radius:12px;resize:vertical;
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.1);
+  color:#fff;outline:none;
+  transition:border-color .2s,background .2s;
+}
+.field input:focus,.field textarea:focus{border-color:rgba(255,95,141,.6);background:rgba(255,255,255,.075)}
+.field textarea{min-height:96px}
+.sheet-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px}
+.sbtn{
+  border:none;border-radius:13px;padding:14px 8px;
+  font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;
+  transition:transform .12s,opacity .2s;
+  background:rgba(255,255,255,.08);color:#fff;
+  border:1px solid rgba(255,255,255,.08);
+}
+.sbtn:active{transform:scale(.96)}
+.sbtn.main{grid-column:1/-1;background:linear-gradient(135deg,#ff5f8d,#8b5cf6);border:none;box-shadow:0 8px 22px rgba(255,95,141,.3)}
+.sbtn.danger{color:#ff8fa8}
+
+/* toast */
+.toast{
+  position:fixed;left:50%;bottom:90px;transform:translate(-50%,20px);
+  background:rgba(30,20,48,.95);
+  border:1px solid rgba(255,255,255,.12);
+  color:#fff;font-size:13px;font-weight:600;
+  padding:11px 22px;border-radius:99px;
+  opacity:0;pointer-events:none;transition:all .3s;z-index:300;
+  white-space:nowrap;
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+</style>
+</head>
+<body>
+
+<div class="game">
+  <!-- 计分板 -->
+  <div class="scoreboard" id="scoreboard">
+    <div class="player" id="pl0">
+      <div class="pname" id="pn0">玩家 A</div>
+      <div class="pscore" id="ps0">0</div>
+    </div>
+    <div class="vs">VS</div>
+    <div class="player" id="pl1">
+      <div class="pname" id="pn1">玩家 B</div>
+      <div class="pscore" id="ps1">0</div>
+    </div>
+  </div>
+
+  <!-- 老虎机 -->
+  <div class="machine">
+    <div class="lights">
+      <i style="animation-delay:0s"></i><i style="animation-delay:.15s"></i>
+      <i style="animation-delay:.3s"></i><i style="animation-delay:.45s"></i>
+      <i style="animation-delay:.6s"></i><i style="animation-delay:.75s"></i>
+      <i style="animation-delay:.9s"></i><i style="animation-delay:1.05s"></i>
+      <i style="animation-delay:1.2s"></i><i style="animation-delay:1.35s"></i>
+      <i style="animation-delay:1.5s"></i><i style="animation-delay:1.65s"></i>
+    </div>
+    <div class="reels">
+      <div class="reel"><div class="strip"></div></div>
+      <div class="reel"><div class="strip"></div></div>
+      <div class="reel"><div class="strip"></div></div>
+    </div>
+    <div class="machine-foot">
+      <span class="turn-tag" id="turnTag">玩家 A 的回合</span>
+    </div>
+  </div>
+
+  <!-- 任务卡 -->
+  <div class="task-card" id="taskCard">
+    <span id="taskText">拉一下，看看今天要做什么 👀</span>
+  </div>
+
+  <!-- 操作区 -->
+  <div class="controls">
+    <button class="btn primary" id="btnSpin">摇 一 摇</button>
+    <button class="btn accept" id="btnAccept">接受挑战 ✨</button>
+    <button class="btn decline" id="btnDecline">放弃，对方 +1</button>
+    <button class="btn done" id="btnDone">完成啦 ✓</button>
+  </div>
+</div>
+
+<!-- 隐藏设置入口 -->
+<div class="secret-dot" id="secretDot" title=""></div>
+
+<!-- 设置面板 -->
+<div class="sheet" id="sheet">
+  <div class="sheet-inner">
+    <h3>⚙ 设置</h3>
+    <div class="field">
+      <label>玩家 A 名字</label>
+      <input type="text" id="inpName0" maxlength="10">
+    </div>
+    <div class="field">
+      <label>玩家 B 名字</label>
+      <input type="text" id="inpName1" maxlength="10">
+    </div>
+    <div class="field">
+      <label>转盘 ① 任务主体（每行一个）</label>
+      <textarea id="inpPool0" spellcheck="false"></textarea>
+    </div>
+    <div class="field">
+      <label>转盘 ② 语气 / 方式（每行一个）</label>
+      <textarea id="inpPool1" spellcheck="false"></textarea>
+    </div>
+    <div class="field">
+      <label>转盘 ③ 强度 / 次数（每行一个）</label>
+      <textarea id="inpPool2" spellcheck="false"></textarea>
+    </div>
+    <div class="sheet-actions">
+      <button class="sbtn" id="btnResetPool">恢复默认词条</button>
+      <button class="sbtn danger" id="btnResetScore">重置积分</button>
+      <button class="sbtn main" id="btnSave">保存并关闭</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+'use strict';
+
+/* ============ 默认配置 ============ */
+const DEFAULTS = {
+  names: ['玩家 A', '玩家 B'],
+  pools: [
+    ['亲一下额头','拥抱 8 秒','帮对方捏捏肩','夸三个优点','深情对视',
+     '学一种动物叫','说句土味情话','讲个笑话','摸头杀','背对方走五步',
+     '捶捶背','唱一句情歌','在手心画颗心','夸对方好看','揉揉耳朵','十指相扣'],
+    ['用最温柔的语气','用撒娇的声音','闭着眼睛','一边笑一边','盯着对方的眼睛',
+     '用最浮夸的方式','不许笑场','深情地','手比个心','慢动作完成',
+     '说声“最喜欢你”','用夹子音'],
+    ['做 1 次','做 2 次','做 3 次','坚持 5 秒','坚持 10 秒',
+     '坚持 20 秒','加个抱抱收尾','要说出三个理由','全程保持微笑','倒数三秒开始']
+  ]
+};
+
+const STORAGE_KEY = 'heart-slot-v1';
+const ROW_H = 44;
+const $ = id => document.getElementById(id);
+
+/* ============ 状态 ============ */
+let cfg = {
+  names: DEFAULTS.names.slice(),
+  pools: DEFAULTS.pools.map(p => p.slice())
+};
+let scores = [0, 0];
+let current = 0;          // 当前玩家 0/1
+let phase = 'idle';       // idle | spinning | deciding | doing | resolving
+let picks = [0, 0, 0];
+
+/* ============ DOM ============ */
+const reelEls   = Array.from(document.querySelectorAll('.reel'));
+const stripEls  = reelEls.map(r => r.querySelector('.strip'));
+const taskCard  = $('taskCard');
+const taskText  = $('taskText');
+const turnTag   = $('turnTag');
+const btnSpin   = $('btnSpin');
+const btnAccept = $('btnAccept');
+const btnDecline= $('btnDecline');
+const btnDone   = $('btnDone');
+const sheet     = $('sheet');
+const toastEl   = $('toast');
+
+/* ============ 工具 ============ */
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+let toastTimer;
+function toast(msg){
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.remove('show'), 1600);
+}
+
+/* ============ 存储 ============ */
+function save(){
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ cfg, scores })); } catch(e){}
+}
+function load(){
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const d = JSON.parse(raw);
+    if (d && d.cfg) {
+      if (Array.isArray(d.cfg.names) && d.cfg.names.length === 2) {
+        cfg.names = d.cfg.names.map((n,i) => String(n || DEFAULTS.names[i]));
+      }
+      if (Array.isArray(d.cfg.pools)) {
+        d.cfg.pools.forEach((p, i) => {
+          if (i < 3 && Array.isArray(p)) {
+            const clean = p.map(x => String(x).trim()).filter(Boolean);
+            if (clean.length) cfg.pools[i] = clean;
+          }
+        });
+      }
+    }
+    if (Array.isArray(d.scores) && d.scores.length === 2) {
+      scores = d.scores.map(n => Number(n) || 0);
+    }
+  } catch(e){}
+}
+
+/* ============ 渲染 ============ */
+function renderScores(){
+  for (let i = 0; i < 2; i++) {
+    $('pn' + i).textContent = cfg.names[i];
+    $('ps' + i).textContent = scores[i];
+    $('pl' + i).classList.toggle('active', i === current);
+  }
+  turnTag.textContent = cfg.names[current] + ' 的回合';
+}
+
+function bumpScore(i){
+  const el = $('ps' + i);
+  el.classList.remove('bump');
+  void el.offsetWidth;
+  el.classList.add('bump');
+}
+
+function resetReels(){
+  for (let i = 0; i < 3; i++) {
+    const pool = cfg.pools[i];
+    const show = [];
+    for (let k = 0; k < 3; k++) show.push(pool[k % pool.length]);
+    stripEls[i].style.transition = 'none';
+    stripEls[i].style.transform = 'translateY(0)';
+    stripEls[i].innerHTML = show.map(t => '<div class="reel-item">' + esc(t) + '</div>').join('');
+  }
+}
+
+function setPhase(p){
+  phase = p;
+  btnSpin.style.display    = p === 'idle'     ? '' : 'none';
+  btnAccept.style.display  = p === 'deciding' ? '' : 'none';
+  btnDecline.style.display = p === 'deciding' ? '' : 'none';
+  btnDone.style.display    = p === 'doing'    ? '' : 'none';
+}
+
+/* ============ 摇奖 ============ */
+function spin(){
+  if (phase !== 'idle') return;
+  setPhase('spinning');
+  taskCard.classList.remove('active', 'doing');
+  taskText.textContent = '命运转动中……';
+
+  picks = cfg.pools.map(pool => Math.floor(Math.random() * pool.length));
+
+  const durations = [1750, 2250, 2750];
+
+  picks.forEach((pick, i) => {
+    const pool = cfg.pools[i];
+    const len  = pool.length;
+    const strip = stripEls[i];
+
+    // 构建长条
+    const loops = 8;
+    const arr = [];
+    for (let k = 0; k < loops; k++) arr.push.apply(arr, pool);
+
+    const stopAt = len * 4 + Math.floor(Math.random() * len);
+    arr[stopAt] = pool[pick];
+
+    strip.innerHTML = arr.map(t => '<div class="reel-item">' + esc(t) + '</div>').join('');
+    strip.style.transition = 'none';
+    strip.style.transform  = 'translateY(0)';
+    void strip.offsetHeight;
+
+    strip.style.transition = 'transform ' + durations[i] + 'ms cubic-bezier(.12,.72,.1,1)';
+    strip.style.transform  = 'translateY(' + (-(stopAt * ROW_H) + ROW_H) + 'px)';
+  });
+
+  setTimeout(onSpinComplete, durations[2] + 140);
+}
+
+function onSpinComplete(){
+  const text = picks.map((pick, i) => cfg.pools[i][pick]).join('，');
+  taskText.textContent = text;
+  taskCard.classList.add('active');
+  setPhase('deciding');
+  if (navigator.vibrate) navigator.vibrate(35);
+}
+
+/* ============ 玩家操作 ============ */
+function onAccept(){
+  if (phase !== 'deciding') return;
+  taskCard.classList.add('doing');
+  setPhase('doing');
+}
+
+function onDone(){
+  if (phase !== 'doing') return;
+  setPhase('resolving');
+  scores[current] += 2;
+  renderScores();
+  bumpScore(current);
+  save();
+  taskText.textContent = '✨ ' + cfg.names[current] + ' 完成挑战，+2 分！';
+  setTimeout(nextTurn, 900);
+}
+
+function onDecline(){
+  if (phase !== 'deciding') return;
+  setPhase('resolving');
+  const other = 1 - current;
+  scores[other] += 1;
+  renderScores();
+  bumpScore(other);
+  save();
+  taskText.textContent = '😌 ' + cfg.names[current] + ' 放弃了，' + cfg.names[other] + ' +1 分';
+  setTimeout(nextTurn, 900);
+}
+
+function nextTurn(){
+  current = 1 - current;
+  setPhase('idle');
+  renderScores();
+  taskCard.classList.remove('active', 'doing');
+  taskText.textContent = '拉一下，看看今天要做什么 👀';
+}
+
+/* ============ 设置面板 ============ */
+function openSheet(){
+  $('inpName0').value = cfg.names[0];
+  $('inpName1').value = cfg.names[1];
+  for (let i = 0; i < 3; i++) $('inpPool' + i).value = cfg.pools[i].join('\n');
+  sheet.classList.add('open');
+}
+function closeSheet(){ sheet.classList.remove('open'); }
+
+function saveSheet(){
+  const n0 = $('inpName0').value.trim();
+  const n1 = $('inpName1').value.trim();
+  cfg.names[0] = n0 || DEFAULTS.names[0];
+  cfg.names[1] = n1 || DEFAULTS.names[1];
+
+  for (let i = 0; i < 3; i++) {
+    const lines = $('inpPool' + i).value.split('\n').map(s => s.trim()).filter(Boolean);
+    if (lines.length) cfg.pools[i] = lines;
+  }
+  save();
+  renderScores();
+  resetReels();
+  closeSheet();
+  toast('设置已保存 ✓');
+}
+
+/* ============ 事件绑定 ============ */
+btnSpin.addEventListener('click', spin);
+btnAccept.addEventListener('click', onAccept);
+btnDecline.addEventListener('click', onDecline);
+btnDone.addEventListener('click', onDone);
+
+// 隐藏入口：小圆点
+$('secretDot').addEventListener('click', openSheet);
+// 隐藏入口：双击计分板
+$('scoreboard').addEventListener('dblclick', openSheet);
+
+// 设置面板
+sheet.addEventListener('click', e => { if (e.target === sheet) closeSheet(); });
+$('btnSave').addEventListener('click', saveSheet);
+$('btnResetPool').addEventListener('click', () => {
+  cfg.pools = DEFAULTS.pools.map(p => p.slice());
+  for (let i = 0; i < 3; i++) $('inpPool' + i).value = cfg.pools[i].join('\n');
+  resetReels();
+  toast('已恢复默认词条');
+});
+$('btnResetScore').addEventListener('click', () => {
+  scores = [0, 0];
+  current = 0;
+  renderScores();
+  save();
+  resetReels();
+  nextTurnReset();
+  toast('积分已清零');
+  closeSheet();
+});
+
+function nextTurnReset(){
+  setPhase('idle');
+  taskCard.classList.remove('active', 'doing');
+  taskText.textContent = '拉一下，看看今天要做什么 👀';
+}
+
+/* ============ 启动 ============ */
+load();
+renderScores();
+resetReels();
+setPhase('idle');
+
+})();
+</script>
+</body>
+</html>
