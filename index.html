@@ -235,56 +235,6 @@ body::before{
 .btn.done::after{background:linear-gradient(180deg,rgba(255,255,255,.35),transparent 55%)}
 .btn.done .b-main{letter-spacing:2px}
 
-/* ================= 配置按钮 ================= */
-.btn.config{
-  flex:0 0 auto;width:clamp(50px,13.5vw,60px);
-  background:rgba(255,255,255,.06);
-  border:1px solid rgba(255,255,255,.16);
-  box-shadow:none;
-}
-.btn.config::after{background:linear-gradient(180deg,rgba(255,255,255,.12),transparent 60%)}
-.btn.config .b-main{font-size:clamp(17px,4.5vw,21px);letter-spacing:0;line-height:1}
-.btn.config .b-sub{opacity:.62}
-.btn.config.pulse{animation:cfgPulse 2.8s ease-in-out infinite}
-@keyframes cfgPulse{
-  0%,100%{border-color:rgba(255,255,255,.16);box-shadow:0 0 0 rgba(139,92,246,0)}
-  50%{border-color:rgba(139,92,246,.55);box-shadow:0 0 18px rgba(139,92,246,.3)}
-}
-.btn.config:disabled{opacity:.32;pointer-events:none;animation:none}
-
-/* ================= 胜利弹窗 ================= */
-.win-mask{
-  position:fixed;inset:0;z-index:260;
-  display:flex;align-items:center;justify-content:center;
-  padding:24px;
-  background:rgba(5,3,10,.78);
-  backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px);
-  opacity:0;visibility:hidden;
-  transition:opacity .3s,visibility .3s;
-}
-.win-mask.open{opacity:1;visibility:visible}
-.win-box{
-  width:100%;max-width:330px;text-align:center;
-  background:linear-gradient(165deg,#26183a,#160f24);
-  border:1px solid rgba(255,209,102,.32);
-  border-radius:22px;
-  padding:26px 22px 20px;
-  box-shadow:0 26px 70px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.08);
-  transform:translateY(20px) scale(.94);
-  transition:transform .38s cubic-bezier(.3,1.4,.5,1);
-}
-.win-mask.open .win-box{transform:translateY(0) scale(1)}
-.win-emoji{display:block;font-size:44px;line-height:1;margin-bottom:10px;animation:winSwing 1.7s ease-in-out infinite}
-@keyframes winSwing{0%,100%{transform:rotate(-7deg) scale(1)}50%{transform:rotate(7deg) scale(1.1)}}
-.win-title{
-  font-size:19px;font-weight:800;letter-spacing:.6px;margin-bottom:7px;
-  background:linear-gradient(180deg,#fff,#ffd166);
-  -webkit-background-clip:text;background-clip:text;color:transparent;
-}
-.win-sub{font-size:13px;color:rgba(255,255,255,.6);line-height:1.6;margin-bottom:18px}
-.win-sub b{color:var(--gold);font-size:16px;letter-spacing:1px}
-.win-actions{display:grid;gap:9px}
-
 /* ================= 隐藏设置入口 ================= */
 .secret-dot{
   position:fixed;z-index:60;cursor:pointer;
@@ -332,29 +282,19 @@ body::before{
   display:block;font-size:12px;font-weight:600;letter-spacing:.3px;
   color:rgba(255,255,255,.48);margin-bottom:6px;
 }
-.field input,.field textarea,.field select{
+.field input,.field textarea{
   width:100%;font-family:inherit;font-size:16px;line-height:1.55;
   padding:10px 12px;border-radius:11px;resize:vertical;
   background:rgba(255,255,255,.05);
   border:1px solid rgba(255,255,255,.1);
   color:#fff;outline:none;
-  transition:border-color .2s,background-color .2s;
+  transition:border-color .2s,background .2s;
 }
 .field textarea{font-size:14px;min-height:84px}
-.field select{
-  -webkit-appearance:none;appearance:none;cursor:pointer;
-  padding-right:30px;
-  background-image:url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23ff9db5' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
-  background-repeat:no-repeat;background-position:right 12px center;
-}
-.field select option{background:#1d1430;color:#fff}
-.field input:focus,.field textarea:focus,.field select:focus{
+.field input:focus,.field textarea:focus{
   border-color:rgba(255,95,141,.6);
-  background-color:rgba(255,255,255,.075);
+  background:rgba(255,255,255,.075);
 }
-.field-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.field-grid .field{margin-bottom:13px}
-.field .mini{font-size:10px;font-weight:500;opacity:.5;margin-left:4px}
 .switch-row{
   display:flex;align-items:center;justify-content:space-between;
   padding:8px 2px;margin-bottom:6px;
@@ -396,7 +336,7 @@ body::before{
 /* ================= 特效 ================= */
 .confetti{
   position:fixed;width:7px;height:7px;border-radius:2px;
-  pointer-events:none;z-index:280;
+  pointer-events:none;z-index:250;
   transform:translate(-50%,-50%);
   animation:confettiFly var(--dur,.85s) cubic-bezier(.15,.7,.3,1) forwards;
 }
@@ -519,7 +459,6 @@ body::before{
       <div class="controls">
         <button class="btn primary" id="btnSpin">
           <span class="b-main">摇 一 摇</span>
-          <span class="b-sub">开始本回合</span>
         </button>
         <button class="btn accept" id="btnAccept" hidden>
           <span class="b-main">接受挑战</span>
@@ -532,10 +471,6 @@ body::before{
         <button class="btn done" id="btnDone" hidden>
           <span class="b-main">完成啦 ✓</span>
           <span class="b-sub">换下一位</span>
-        </button>
-        <button class="btn config pulse" id="btnConfig" aria-label="游戏设置" title="游戏设置">
-          <span class="b-main">⚙</span>
-          <span class="b-sub">配置</span>
         </button>
       </div>
     </div>
@@ -562,38 +497,9 @@ body::before{
       <input type="text" id="inpName1" maxlength="10" placeholder="玩家 B">
     </div>
 
-    <div class="field-grid">
-      <div class="field">
-        <label>目标分</label>
-        <input type="number" id="inpTarget" min="1" max="99" step="1" inputmode="numeric">
-      </div>
-      <div class="field">
-        <label>完成自 +</label>
-        <input type="number" id="inpReward" min="0" max="10" step="1" inputmode="numeric">
-      </div>
-      <div class="field">
-        <label>拒绝对方 +</label>
-        <input type="number" id="inpPenalty" min="1" max="10" step="1" inputmode="numeric">
-      </div>
-    </div>
-
-    <div class="field">
-      <label>转盘速度</label>
-      <select id="selSpeed">
-        <option value="slow">慢 · 更有悬念</option>
-        <option value="normal">正常</option>
-        <option value="fast">快 · 节奏紧凑</option>
-      </select>
-    </div>
-
     <div class="switch-row">
       <span>游戏音效</span>
       <input type="checkbox" id="chkSound" checked>
-      <i class="switch"></i>
-    </div>
-    <div class="switch-row">
-      <span>彩带与震动特效</span>
-      <input type="checkbox" id="chkFx" checked>
       <i class="switch"></i>
     </div>
 
@@ -611,29 +517,13 @@ body::before{
     </div>
 
     <p class="hint-line">
-      词条会随机组合成任务，每行一个，改完点「保存并生效」。
-      计分规则：完成挑战自己加分，拒绝则对方加分，先达目标分者胜。
-      数据仅保存在本设备浏览器中，换设备需重新配置。
+      词条会随机组合成任务。数据仅保存在本设备浏览器中。
     </p>
 
     <div class="sheet-actions">
       <button class="sbtn" id="btnResetPool">恢复默认词条</button>
       <button class="sbtn danger" id="btnResetScore">重置积分</button>
-      <button class="sbtn main" id="btnSave">保存并生效</button>
-      <button class="sbtn danger" id="btnWipe">清空本机所有数据</button>
-    </div>
-  </div>
-</div>
-
-<!-- 胜利弹窗 -->
-<div class="win-mask" id="winMask">
-  <div class="win-box" id="winBox">
-    <span class="win-emoji">🏆</span>
-    <div class="win-title" id="winWho">玩家 A 达成目标</div>
-    <div class="win-sub">当前比分 <b id="winScore">0 : 0</b></div>
-    <div class="win-actions">
-      <button class="sbtn main" id="btnNewRound">再来一局（比分清零）</button>
-      <button class="sbtn" id="btnKeepPlaying">继续玩，不清分</button>
+      <button class="sbtn main" id="btnSave">保存并关闭</button>
     </div>
   </div>
 </div>
@@ -647,11 +537,6 @@ body::before{
 /* ================= 默认配置 ================= */
 const DEFAULTS = {
   names: ['玩家 A', '玩家 B'],
-  targetScore: 10,
-  penalty: 1,
-  reward: 1,
-  speed: 'normal',
-  fx: true,
   pools: [
     ['亲一下额头','拥抱 8 秒','帮对方捏捏肩','夸三个优点','深情对视',
      '学一种动物叫','说句土味情话','讲个笑话','摸头杀','背对方走五步',
@@ -663,12 +548,7 @@ const DEFAULTS = {
      '坚持 20 秒','加个抱抱收尾','要说出三个理由','全程保持微笑','倒数三秒开始']
   ]
 };
-const STORAGE_KEY = 'heart-slot-v3';
-const SPEEDS = {
-  slow:   [2300, 3000, 3700],
-  normal: [1550, 2050, 2550],
-  fast:   [900, 1200, 1500]
-};
+const STORAGE_KEY = 'heart-slot-v2';
 const $ = id => document.getElementById(id);
 
 /* ================= 音效 ================= */
@@ -710,12 +590,7 @@ const Snd = {
 let cfg = {
   names: DEFAULTS.names.slice(),
   pools: DEFAULTS.pools.map(p => p.slice()),
-  sound: true,
-  fx: true,
-  speed: 'normal',
-  targetScore: DEFAULTS.targetScore,
-  penalty: DEFAULTS.penalty,
-  reward: DEFAULTS.reward
+  sound: true
 };
 let scores = [0, 0];
 let current = 0;
@@ -735,8 +610,6 @@ const btnDecline= $('btnDecline');
 const btnDone   = $('btnDone');
 const sheet     = $('sheet');
 const toastEl   = $('toast');
-const btnConfig = $('btnConfig');
-const winMask   = $('winMask');
 
 /* ================= 工具 ================= */
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -750,7 +623,6 @@ function toast(msg){
 }
 
 function vibrate(ms){
-  if(!cfg.fx) return;
   if(navigator.vibrate) { try{ navigator.vibrate(ms); }catch(e){} }
 }
 
@@ -776,14 +648,6 @@ function load(){
         });
       }
       if(typeof d.cfg.sound === 'boolean') cfg.sound = d.cfg.sound;
-      if(typeof d.cfg.fx === 'boolean') cfg.fx = d.cfg.fx;
-      if(SPEEDS[d.cfg.speed]) cfg.speed = d.cfg.speed;
-      const ts = Math.round(Number(d.cfg.targetScore));
-      if(ts >= 1 && ts <= 99) cfg.targetScore = ts;
-      const pt = Math.round(Number(d.cfg.penalty));
-      if(pt >= 1 && pt <= 10) cfg.penalty = pt;
-      const rw = Math.round(Number(d.cfg.reward));
-      if(rw >= 0 && rw <= 10) cfg.reward = rw;
     }
     if(Array.isArray(d.scores) && d.scores.length === 2){
       scores = d.scores.map(n => Math.max(0, Number(n) || 0));
@@ -835,7 +699,6 @@ function updateTurnTag(){
 
 function setPhase(p){
   phase = p;
-  btnConfig.disabled = (p === 'spinning');
   btnSpin.hidden    = p !== 'idle';
   btnAccept.hidden  = p !== 'deciding';
   btnDecline.hidden = p !== 'deciding';
@@ -891,7 +754,7 @@ function spin(){
 
   picks = cfg.pools.map(pool => Math.floor(Math.random() * pool.length));
 
-  const durations = (SPEEDS[cfg.speed] || SPEEDS.normal).slice();
+  const durations = [1550, 2050, 2550];
   const maxDur = durations[2];
 
   picks.forEach((pick, i) => {
@@ -958,25 +821,11 @@ function onDone(){
   Snd.win();
   vibrate([0, 22, 50, 22]);
   setPhase('settling');
-
-  const me = current;
-  const gain = cfg.reward;
-  if(gain > 0){
-    scores[me] += gain;
-    renderScores();
-    bumpScore(me);
-    floatScore(me, '+' + gain);
-    save();
-  }
-
   confettiBurst(taskCard);
-  taskText.textContent = '✨ ' + cfg.names[me] + ' 完成挑战！' + (gain > 0 ? ' +' + gain + ' 分' : '');
+  taskText.textContent = '✨ ' + cfg.names[current] + ' 完成挑战！';
   taskCard.classList.remove('doing');
   taskCard.classList.add('active');
-  spinningTimers.push(setTimeout(() => {
-    if(checkWin()) return;
-    nextTurn();
-  }, 980));
+  spinningTimers.push(setTimeout(nextTurn, 980));
 }
 
 function onDecline(){
@@ -986,50 +835,16 @@ function onDecline(){
   setPhase('settling');
 
   const other = 1 - current;
-  const gain = cfg.penalty;
-  scores[other] += gain;
+  scores[other] += 1;
   renderScores();
   bumpScore(other);
-  floatScore(other, '+' + gain);
+  floatScore(other, '+1');
   save();
 
-  taskText.textContent = '😌 ' + cfg.names[current] + ' 不愿意，' + cfg.names[other] + ' +' + gain + ' 分';
+  taskText.textContent = '😌 ' + cfg.names[current] + ' 不愿意，' + cfg.names[other] + ' +1 分';
   taskCard.classList.remove('active');
   taskCard.classList.add('doing');
-  spinningTimers.push(setTimeout(() => {
-    if(checkWin()) return;
-    nextTurn();
-  }, 980));
-}
-
-function checkWin(){
-  for(let i = 0; i < 2; i++){
-    if(scores[i] >= cfg.targetScore){ showWin(i); return true; }
-  }
-  return false;
-}
-
-function showWin(i){
-  setPhase('settling');
-  Snd.win();
-  vibrate([0, 30, 60, 30, 60]);
-  $('winWho').textContent = cfg.names[i] + ' 先达成 ' + cfg.targetScore + ' 分！';
-  $('winScore').textContent = scores[0] + ' : ' + scores[1];
-  winMask.classList.add('open');
-  confettiBurst($('winBox'));
-}
-
-function restartRound(){
-  scores = [0, 0];
-  current = 0;
-  winMask.classList.remove('open');
-  renderScores();
-  save();
-  resetReels();
-  setPhase('idle');
-  taskCard.classList.remove('active', 'doing');
-  taskText.textContent = '拉一下，看看今天要做什么 👀';
-  toast('新的一局开始 🎰');
+  spinningTimers.push(setTimeout(nextTurn, 980));
 }
 
 function nextTurn(){
@@ -1046,8 +861,7 @@ function confettiBurst(el){
   const r = el.getBoundingClientRect();
   const cx = r.left + r.width / 2;
   const cy = r.top + r.height / 2;
-  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const n = (reduced || !cfg.fx) ? 0 : 26;
+  const n = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 26;
   for(let i = 0; i < n; i++){
     const p = document.createElement('i');
     p.className = 'confetti';
@@ -1067,22 +881,13 @@ function confettiBurst(el){
 
 /* ================= 设置面板 ================= */
 function openSheet(){
-  document.body.style.overflow = 'hidden';
   $('inpName0').value = cfg.names[0];
   $('inpName1').value = cfg.names[1];
   for(let i = 0; i < 3; i++) $('inpPool' + i).value = cfg.pools[i].join('\n');
   $('chkSound').checked = cfg.sound;
-  $('chkFx').checked = cfg.fx;
-  $('selSpeed').value = SPEEDS[cfg.speed] ? cfg.speed : 'normal';
-  $('inpTarget').value = cfg.targetScore;
-  $('inpPenalty').value = cfg.penalty;
-  $('inpReward').value = cfg.reward;
   sheet.classList.add('open');
 }
-function closeSheet(){
-  sheet.classList.remove('open');
-  document.body.style.overflow = '';
-}
+function closeSheet(){ sheet.classList.remove('open'); }
 
 function saveSheet(){
   const n0 = $('inpName0').value.trim();
@@ -1096,14 +901,6 @@ function saveSheet(){
   }
   cfg.sound = $('chkSound').checked;
   Snd.on = cfg.sound;
-  cfg.fx = $('chkFx').checked;
-  cfg.speed = $('selSpeed').value;
-  const ts = Math.round(Number($('inpTarget').value));
-  cfg.targetScore = (ts >= 1 && ts <= 99) ? ts : DEFAULTS.targetScore;
-  const pt = Math.round(Number($('inpPenalty').value));
-  cfg.penalty = (pt >= 1 && pt <= 10) ? pt : DEFAULTS.penalty;
-  const rw = Math.round(Number($('inpReward').value));
-  cfg.reward = (rw >= 0 && rw <= 10) ? rw : DEFAULTS.reward;
 
   save();
   renderScores();
@@ -1122,33 +919,9 @@ btnAccept.addEventListener('click', onAccept);
 btnDecline.addEventListener('click', onDecline);
 btnDone.addEventListener('click', onDone);
 
-// 配置入口（明面按钮，与「摇一摇」并排）
-btnConfig.addEventListener('click', () => { Snd.init(); Snd.click(); openSheet(); });
-
-// 备用入口：右下角隐形点 / 双击计分板
+// 隐藏入口
 $('secretDot').addEventListener('click', openSheet);
 $('scoreboard').addEventListener('dblclick', openSheet);
-
-// 胜利弹窗
-$('btnNewRound').addEventListener('click', () => { Snd.click(); restartRound(); });
-$('btnKeepPlaying').addEventListener('click', () => {
-  Snd.click();
-  winMask.classList.remove('open');
-  nextTurn();
-});
-
-// 清空本机数据
-$('btnWipe').addEventListener('click', () => {
-  if(!confirm('将清除本机保存的名字、词条、积分等全部数据，确定？')) return;
-  try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
-  location.reload();
-});
-
-// Esc 关闭浮层
-document.addEventListener('keydown', e => {
-  if(e.key !== 'Escape') return;
-  if(sheet.classList.contains('open')) closeSheet();
-});
 
 // 面板关闭
 $('btnCloseSheet').addEventListener('click', closeSheet);
@@ -1170,7 +943,6 @@ $('btnResetPool').addEventListener('click', () => {
 $('btnResetScore').addEventListener('click', () => {
   scores = [0, 0];
   current = 0;
-  winMask.classList.remove('open');
   renderScores();
   save();
   resetReels();
@@ -1205,6 +977,7 @@ window.addEventListener('resize', () => {
 
 /* ================= 启动 ================= */
 load();
+Snd.on = cfg.sound;
 Snd.on = cfg.sound;
 renderScores();
 resetReels();
